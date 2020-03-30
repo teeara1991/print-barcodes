@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Пример веб-страницы</title>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/rsvp/4.8.5/rsvp.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"
+    ></script>
+    <script type="text/javascript" src="index.js"></script>
+  </head>
+  <body>
+    <div>
+      <button onclick="print('ZDesigner LP 2824')">
+        Напечатать баркод
+      </button>
+    </div>
+    <div>
+      <button onclick="print('Samsung M2020 Series (USB001)')">
+        Напечатать договор
+      </button>
+    </div>
+    <div>
+      <button onclick="getPrinters()">Получить список принтеров</button>
+    </div>
+    <script>
+      qz.api.setSha256Type(data => sha256(data));
+      qz.api.setPromiseType(resolver => new Promise(resolver));
+      qz.websocket.connection = null;
+      let qzSoc = qz.websocket.connect();
+      function print(printerType) {
+        qzSoc
+          .then(function() {
+            return qz.printers.find(printerType);
+          })
+          .then(function(printer) {
+            var config = qz.configs.create(printer);
+            if (printerType == "ZDesigner LP 2824") {
+              let barcodes = [
+                "39565825",
+                "34565468",
+                "12765467",
+                "72165431",
+                "12769924",
+                "79595828",
+                "61515421",
+                "42465187",
+                "18516324",
+                "11164787"
+              ];
+              for (let i = 0; i < 10; i++) {
+                qz.print(config, [
+                  "\nN\n",
+                  "\nI8,C\n",
+                  '\nA10,5,0,2,1,1,N,"Для накладной D"\n',
+                  '\nA10,25,0,2,1,1,N,"ТВ1"\n',
+                  `\nB55,50,0,1C,3,7,80,N,"${barcodes[i]}"\n`,
+                  `\nA80,135,0,2,1,1,N,"${barcodes[i].split("").join(" ")}"\n`,
+                  '\nA10,160,0,1,1,1,N,"Бабайцева Надежда Александровна"\n',
+                  "\nP1,1\n"
+                ]);
+              }
+            } else {
+              return qz.print(config, [
+                {
+                  type: "pixel",
+                  format: "html",
+                  flavor: "file",
+                  data: "output__39567993.html"
+                }
+              ]);
+            }
+          })
+          .catch(function(e) {
+            console.error(e);
+          });
+      }
+      function getPrinters() {
+        return qz.printers.find().then(val => console.log(val));
+      }
+    </script>
+  </body>
+</html>
